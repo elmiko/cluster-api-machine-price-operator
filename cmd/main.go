@@ -17,24 +17,34 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"crypto/tls"
 	"flag"
+	"fmt"
 	"os"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
+	"github.com/elmiko/cluster-api-machine-price-operator/pkg/cloudprovider/builder"
+	"github.com/elmiko/cluster-api-machine-price-operator/pkg/controllers"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/metrics/filters"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	// +kubebuilder:scaffold:imports
+)
+
+const (
+	namespaceEnvVar = "POD_NAMESPACE"
 )
 
 var (
@@ -54,6 +64,7 @@ func main() {
 	var probeAddr string
 	var secureMetrics bool
 	var enableHTTP2 bool
+	var configSecretName string
 	var tlsOpts []func(*tls.Config)
 	flag.StringVar(&metricsAddr, "metrics-bind-address", "0", "The address the metrics endpoint binds to. "+
 		"Use :8443 for HTTPS or :8080 for HTTP, or leave as 0 to disable the metrics service.")
@@ -65,6 +76,7 @@ func main() {
 		"If set, the metrics endpoint is served securely via HTTPS. Use --metrics-secure=false to use HTTP instead.")
 	flag.BoolVar(&enableHTTP2, "enable-http2", false,
 		"If set, HTTP/2 will be enabled for the metrics and webhook servers")
+	flag.StringVar(&configSecretName, "config-secret", "cluster-api-machine-price-operator-config", "The name of the Secret used for configuring the cloud provider.")
 	opts := zap.Options{
 		Development: true,
 	}
@@ -72,6 +84,12 @@ func main() {
 	flag.Parse()
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
+
+	configSecretNamespace := os.Getenv(namespaceEnvVar)
+	if len(configSecretNamespace) == 0 {
+		setupLog.Info(fmt.Sprintf("unable to determine pod namespace, please set %q environment variable", namespaceEnvVar))
+		os.Exit(1)
+	}
 
 	// if the enable-http2 flag is false (the default), http/2 should be disabled
 	// due to its vulnerabilities. More specifically, disabling http/2 will
@@ -146,6 +164,22 @@ func main() {
 	}
 	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
 		setupLog.Error(err, "unable to set up ready check")
+		os.Exit(1)
+	}
+
+	cl := mgr.GetClient()
+	// load the cloud provider config secret
+	configSecret := &corev1.Secret{}
+	if err := cl.Get(context.Background(), client.ObjectKey{Name: configSecretName, Namespace: configSecretNamespace}, configSecret); err != nil {
+		setupLog.Error(err, "unable to read config secret")
+		os.Exit(1)
+	}
+
+	// create the cloud provider and reconciler
+	cloudprovider := builder.NewCloudProvider(configSecret)
+	reconciler := controllers.NewInfraMachineTemplateReconciler(cl, cloudprovider)
+	if err := (&reconciler).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "InfraMachineTemplate")
 		os.Exit(1)
 	}
 
