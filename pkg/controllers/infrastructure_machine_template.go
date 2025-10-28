@@ -26,7 +26,7 @@ func (r *InfraMachineTemplateReconciler) Reconcile(ctx context.Context, req ctrl
 	// if not cached, or last update time greater than 12 hours, refresh
 	infraMachine := r.provider.NewInfraMachineTemplateObject()
 	if err := r.Get(ctx, req.NamespacedName, infraMachine); err != nil {
-		price := r.provider.GetPriceFor(infraMachine)
+		//price := r.provider.GetPriceFor(infraMachine)
 
 	}
 	/*

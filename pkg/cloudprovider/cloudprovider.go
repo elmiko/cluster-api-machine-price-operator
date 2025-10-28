@@ -1,8 +1,9 @@
-package cloudproviders
+package cloudprovider
 
 import (
 	"context"
 
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -13,7 +14,7 @@ type CloudProvider interface {
 
 	// GetPriceForRequest returns the floating point value for the price of the request as determined
 	// by the cloud provider.
-	GetPriceForRequest(context.Context, ctrl.Request)
+	GetPriceForRequest(context.Context, ctrl.Request) float64
 
 	// GetPriceFor returns the floating point value for the price for the object as determined
 	// by the cloud provider.

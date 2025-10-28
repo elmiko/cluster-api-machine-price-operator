@@ -1,12 +1,12 @@
-//go:build !kubemark
-
-package builder
+package fake
 
 import (
+	"context"
+
 	"github.com/elmiko/cluster-api-machine-price-operator/pkg/cloudprovider"
-	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -18,14 +18,20 @@ type FakeMachineTemplate struct {
 type FakeCloudProvider struct {
 }
 
-func buildCloudProvider(configSecret *corev1.Secret) cloudprovider.CloudProvider {
+func NewProvider() cloudprovider.CloudProvider {
 	return FakeCloudProvider{}
 }
 
-dlkfj
-
 func (p FakeCloudProvider) NewInfraMachineTemplateObject() client.Object {
 	return &FakeMachineTemplate{}
+}
+
+func (p FakeCloudProvider) GetPriceForRequest(context.Context, ctrl.Request) float64 {
+	return 0.0
+}
+
+func (p FakeCloudProvider) GetPriceFor(client.Object) float64 {
+	return 0.0
 }
 
 func (in *FakeMachineTemplate) DeepCopyInto(out *FakeMachineTemplate) {
@@ -35,9 +41,7 @@ func (in *FakeMachineTemplate) DeepCopyInto(out *FakeMachineTemplate) {
 }
 
 func (in *FakeMachineTemplate) DeepCopy() *FakeMachineTemplate {
-	if in == nil {sdf
-
-	::wqa
+	if in == nil {
 		return nil
 	}
 	out := new(FakeMachineTemplate)
