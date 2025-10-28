@@ -41,8 +41,7 @@ func (r *MachineDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		log.Error(err, "unable to fetch MachineDeployment")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
-
-	log.Info("machinedeployment reconciled", "name", md.Name)
+	log.Info("machinedeployment observed")
 
 	return ctrl.Result{}, nil
 }
