@@ -25,6 +25,8 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
+var log = logf.Log.WithName("machinedeployment-reconciler")
+
 type MachineDeploymentReconciler struct {
 	client.Client
 }
@@ -34,14 +36,11 @@ func NewMachineDeploymentReconciler(cl client.Client) *MachineDeploymentReconcil
 }
 
 func (r *MachineDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := logf.FromContext(ctx)
-
 	var md capiv1beta1.MachineDeployment
 	if err := r.Get(ctx, req.NamespacedName, &md); err != nil {
 		log.Error(err, "unable to fetch MachineDeployment")
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
-	log.Info("machinedeployment observed")
 
 	log.Info("infrastructure reference", "object", md.Spec.Template.Spec.InfrastructureRef)
 
