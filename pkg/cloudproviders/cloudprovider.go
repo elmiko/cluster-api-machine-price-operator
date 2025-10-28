@@ -1,4 +1,4 @@
-package cloudprovider
+package cloudproviders
 
 import (
 	"context"
