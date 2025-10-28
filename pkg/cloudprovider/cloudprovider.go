@@ -11,9 +11,11 @@ type CloudProvider interface {
 	// that will be reconciled by the controller.
 	NewInfraMachineTemplateObject() client.Object
 
-	// GetPriceForRequest returns the floating point value for the price as determined
+	// GetPriceForRequest returns the floating point value for the price of the request as determined
 	// by the cloud provider.
 	GetPriceForRequest(context.Context, ctrl.Request)
 
-	GetPriceFor(client.Object) float64 
+	// GetPriceFor returns the floating point value for the price for the object as determined
+	// by the cloud provider.
+	GetPriceFor(client.Object) float64
 }
