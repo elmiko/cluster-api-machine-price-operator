@@ -1,5 +1,5 @@
 /*
-Copyright 2024.
+Copyright 2025. Red Hat, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -20,14 +20,11 @@ import (
 	"crypto/tls"
 	"flag"
 	"os"
-	"strings"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
 
 	"github.com/elmiko/cluster-api-machine-price-operator/pkg/controllers"
-	"github.com/elmiko/cluster-api-machine-price-operator/pkg/options"
-	"github.com/elmiko/cluster-api-machine-price-operator/pkg/providers"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	"k8s.io/apimachinery/pkg/runtime"
@@ -61,8 +58,6 @@ func main() {
 	var enableHTTP2 bool
 	var tlsOpts []func(*tls.Config)
 
-	campoOptions := options.CampoOptions{}
-
 	flag.StringVar(&metricsAddr, "metrics-bind-address", "0", "The address the metrics endpoint binds to. "+
 		"Use :8443 for HTTPS or :8080 for HTTP, or leave as 0 to disable the metrics service.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
@@ -73,7 +68,6 @@ func main() {
 		"If set, the metrics endpoint is served securely via HTTPS. Use --metrics-secure=false to use HTTP instead.")
 	flag.BoolVar(&enableHTTP2, "enable-http2", false,
 		"If set, HTTP/2 will be enabled for the metrics and webhook servers")
-	flag.StringVar(&campoOptions.ProviderName, "cloud-provider", "fake", "The name of the cloud provider to interface with, choose from:["+strings.Join(providers.AvailableCloudProviders, ", ")+"]")
 	opts := zap.Options{
 		Development: true,
 	}
@@ -124,23 +118,13 @@ func main() {
 	}
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
-		Scheme:                 scheme,
-		Metrics:                metricsServerOptions,
-		WebhookServer:          webhookServer,
-		HealthProbeBindAddress: probeAddr,
-		LeaderElection:         enableLeaderElection,
-		LeaderElectionID:       "682face2.elmiko.dev",
-		// LeaderElectionReleaseOnCancel defines if the leader should step down voluntarily
-		// when the Manager ends. This requires the binary to immediately end when the
-		// Manager is stopped, otherwise, this setting is unsafe. Setting this significantly
-		// speeds up voluntary leader transitions as the new leader don't have to wait
-		// LeaseDuration time first.
-		//
-		// In the default scaffold provided, the program ends immediately after
-		// the manager stops, so would be fine to enable this option. However,
-		// if you are doing or is intended to do any operation such as perform cleanups
-		// after the manager stops then its usage might be unsafe.
-		// LeaderElectionReleaseOnCancel: true,
+		Scheme:                        scheme,
+		Metrics:                       metricsServerOptions,
+		WebhookServer:                 webhookServer,
+		HealthProbeBindAddress:        probeAddr,
+		LeaderElection:                enableLeaderElection,
+		LeaderElectionID:              "682face2.elmiko.dev",
+		LeaderElectionReleaseOnCancel: true,
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
@@ -160,11 +144,9 @@ func main() {
 
 	cl := mgr.GetClient()
 
-	// create the cloud provider and reconciler
-	cloudprovider := providers.NewCloudProvider(campoOptions)
-	reconciler := controllers.NewInfraMachineTemplateReconciler(cl, cloudprovider)
-	if err := (&reconciler).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "InfraMachineTemplate")
+	reconciler := controllers.NewMachineDeploymentReconciler(cl)
+	if err := reconciler.SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "MachineDeploymentReconciler")
 		os.Exit(1)
 	}
 
