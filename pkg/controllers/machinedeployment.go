@@ -43,6 +43,8 @@ func (r *MachineDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Re
 	}
 	log.Info("machinedeployment observed")
 
+	log.Info("infrastructure reference", "object", md.Spec.Template.Spec.InfrastructureRef)
+
 	return ctrl.Result{}, nil
 }
 
