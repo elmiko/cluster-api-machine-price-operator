@@ -42,7 +42,7 @@ func (r *MachineDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	log.Info("machinedeployment reconciled", md.Name)
+	log.Info("machinedeployment reconciled", "name", md.Name)
 
 	return ctrl.Result{}, nil
 }
