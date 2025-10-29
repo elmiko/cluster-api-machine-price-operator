@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 
+	"github.com/elmiko/cluster-api-machine-price-operator/pkg/providers"
 	capiv1beta1 "sigs.k8s.io/cluster-api/api/core/v1beta1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -29,20 +30,40 @@ var log = logf.Log.WithName("machinedeployment-reconciler")
 
 type MachineDeploymentReconciler struct {
 	client.Client
+
+	priceProvider providers.InfrastructurePriceProvider
 }
 
 func NewMachineDeploymentReconciler(cl client.Client) *MachineDeploymentReconciler {
-	return &MachineDeploymentReconciler{cl}
+	return &MachineDeploymentReconciler{
+		cl,
+		providers.NewInfrastructurePriceProvider(cl),
+	}
 }
 
 func (r *MachineDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	var md capiv1beta1.MachineDeployment
 	if err := r.Get(ctx, req.NamespacedName, &md); err != nil {
-		log.Error(err, "unable to fetch MachineDeployment")
+		log.Error(err, "unable to fetch MachineDeployment", "name", md.Name, "namespace", md.Namespace)
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	log.Info("infrastructure reference", "object", md.Spec.Template.Spec.InfrastructureRef)
+	infraRef := md.Spec.Template.Spec.InfrastructureRef
+	if price, err := r.priceProvider.GetPriceFor(infraRef); err != nil {
+		log.Error(
+			err,
+			"unable to get price for infrastructure ref",
+			"name",
+			infraRef.Name,
+			"namespace",
+			infraRef.Namespace,
+			"kind",
+			infraRef.Kind,
+		)
+		return ctrl.Result{}, err
+	} else {
+		log.Info("got price", "value", price)
+	}
 
 	return ctrl.Result{}, nil
 }
