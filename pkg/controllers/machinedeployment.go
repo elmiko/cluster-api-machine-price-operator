@@ -60,7 +60,8 @@ func (r *MachineDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Re
 			"kind",
 			infraRef.Kind,
 		)
-		return ctrl.Result{}, err
+		// no need to bubble the error further
+		return ctrl.Result{}, nil
 	} else {
 		log.Info("got price", "value", price)
 	}
