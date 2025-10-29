@@ -21,9 +21,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-type UnknownInfrastructureRef struct{}
+type UnknownInfrastructureRefError struct{}
 
-func (e UnknownInfrastructureRef) Error() string {
+func (e UnknownInfrastructureRefError) Error() string {
 	return "unknown infrastructure reference type"
 }
 
@@ -38,5 +38,5 @@ func NewInfrastructurePriceProvider(cl client.Client) InfrastructurePriceProvide
 }
 
 func (p InfrastructurePriceProvider) GetPriceFor(ref corev1.ObjectReference) (float64, error) {
-	return 0.0, UnknownInfrastructureRef{}
+	return 0.0, UnknownInfrastructureRefError{}
 }
