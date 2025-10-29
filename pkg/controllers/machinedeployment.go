@@ -50,8 +50,8 @@ func (r *MachineDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 	infraRef := md.Spec.Template.Spec.InfrastructureRef
 	if price, err := r.priceProvider.GetPriceFor(infraRef); err != nil {
-		if e, ok := err.(providers.UnknownInfrastructureRefError); ok {
-			log.Warning("no provider found for infra ref", "kind", infraRef.Kind)
+		if _, ok := err.(providers.UnknownInfrastructureRefError); ok {
+			log.Info("no provider found for infra ref", "kind", infraRef.Kind)
 			return ctrl.Result{}, nil
 		}
 		log.Error(err, "unexpected error getting price data")
