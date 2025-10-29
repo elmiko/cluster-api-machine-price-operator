@@ -17,6 +17,7 @@ limitations under the License.
 package providers
 
 import (
+	"github.com/elmiko/cluster-api-machine-price-operator/pkg/providers/kubemark"
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -38,5 +39,9 @@ func NewInfrastructurePriceProvider(cl client.Client) InfrastructurePriceProvide
 }
 
 func (p InfrastructurePriceProvider) GetPriceFor(ref corev1.ObjectReference) (float64, error) {
+	switch ref.Kind {
+	case kubemark.InfrastructureRefKind:
+		return kubemark.GetPriceFor(ref)
+	}
 	return 0.0, UnknownInfrastructureRefError{}
 }
