@@ -8,7 +8,8 @@ require (
 	k8s.io/api v0.33.3
 	k8s.io/apimachinery v0.33.3
 	k8s.io/client-go v0.33.3
-	sigs.k8s.io/cluster-api v1.11.2
+	sigs.k8s.io/cluster-api v1.10.7
+	sigs.k8s.io/cluster-api-provider-kubemark v0.9.1
 	sigs.k8s.io/controller-runtime v0.21.0
 )
 
@@ -54,7 +55,7 @@ require (
 	github.com/prometheus/common v0.62.0 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/spf13/cobra v1.9.1 // indirect
-	github.com/spf13/pflag v1.0.7 // indirect
+	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/stoewer/go-strcase v1.3.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
@@ -99,3 +100,5 @@ require (
 	sigs.k8s.io/structured-merge-diff/v4 v4.6.0 // indirect
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
+
+replace sigs.k8s.io/cluster-api-provider-kubemark v0.9.1 => github.com/elmiko/cluster-api-provider-kubemark v0.9.1-0.20251029221815-2adf2be5c7a1

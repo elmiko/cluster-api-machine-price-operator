@@ -26,7 +26,7 @@ import (
 
 	"github.com/elmiko/cluster-api-machine-price-operator/pkg/controllers"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
-	capiv1beta1 "sigs.k8s.io/cluster-api/api/core/v1beta1"
+	capiv1beta1 "sigs.k8s.io/cluster-api/api/v1beta1"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"

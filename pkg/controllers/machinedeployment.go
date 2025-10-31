@@ -22,7 +22,7 @@ import (
 
 	"github.com/elmiko/cluster-api-machine-price-operator/pkg/providers"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	capiv1beta1 "sigs.k8s.io/cluster-api/api/core/v1beta1"
+	capiv1beta1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/cluster-api/util/patch"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -62,7 +62,7 @@ func (r *MachineDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Re
 
 	shouldUpdate := false
 	infraRef := machineDeployment.Spec.Template.Spec.InfrastructureRef
-	if price, found, err := r.priceProvider.GetPriceFor(infraRef); err != nil {
+	if price, found, err := r.priceProvider.GetPriceFor(ctx, infraRef); err != nil {
 		if _, ok := err.(providers.UnknownInfrastructureRefError); ok {
 			log.Info("no provider found for infra ref", "kind", infraRef.Kind)
 			return ctrl.Result{}, nil

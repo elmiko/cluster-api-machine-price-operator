@@ -16,10 +16,35 @@ limitations under the License.
 
 package kubemark
 
-import corev1 "k8s.io/api/core/v1"
+import (
+	"context"
+	"strconv"
+
+	corev1 "k8s.io/api/core/v1"
+	kubemarkv1 "sigs.k8s.io/cluster-api-provider-kubemark/api/v1alpha4"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
+)
 
 const InfrastructureRefKind = "KubemarkMachineTemplate"
 
-func GetPriceFor(ref corev1.ObjectReference) (float64, bool, error) {
-	return 1.0, true, nil
+var log = logf.Log.WithName("kubemark-price-provider")
+
+func GetPriceFor(ctx context.Context, cl client.Client, ref corev1.ObjectReference) (float64, bool, error) {
+	key := client.ObjectKey{Namespace: ref.Namespace, Name: ref.Name}
+	template := kubemarkv1.KubemarkMachineTemplate{}
+	if err := cl.Get(ctx, key, &template); err != nil {
+		log.Error(err, "unable to fetch KubemarkMachineTemplate", "name", key.Name, "namespace", key.Namespace)
+		return 0.0, false, err
+	}
+
+	if len(template.Status.Prices.Current) != 0 {
+		if price, err := strconv.ParseFloat(template.Status.Prices.Current, 64); err != nil {
+			return 0.0, false, err
+		} else {
+			return price, true, nil
+		}
+	}
+
+	return 0.0, false, nil
 }
