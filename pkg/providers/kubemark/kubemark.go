@@ -21,6 +21,7 @@ import (
 	"strconv"
 
 	corev1 "k8s.io/api/core/v1"
+	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	kubemarkv1 "sigs.k8s.io/cluster-api-provider-kubemark/api/v1alpha4"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
@@ -31,6 +32,7 @@ const InfrastructureRefKind = "KubemarkMachineTemplate"
 var log = logf.Log.WithName("kubemark-price-provider")
 
 func GetPriceFor(ctx context.Context, cl client.Client, ref corev1.ObjectReference) (float64, bool, error) {
+	utilruntime.Must(kubemarkv1.AddToScheme(cl.Scheme()))
 	key := client.ObjectKey{Namespace: ref.Namespace, Name: ref.Name}
 	template := kubemarkv1.KubemarkMachineTemplate{}
 	if err := cl.Get(ctx, key, &template); err != nil {
