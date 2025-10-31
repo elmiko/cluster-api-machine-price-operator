@@ -20,6 +20,6 @@ import corev1 "k8s.io/api/core/v1"
 
 const InfrastructureRefKind = "KubemarkMachineTemplate"
 
-func GetPriceFor(ref corev1.ObjectReference) (float64, error) {
-	return 1.0, nil
+func GetPriceFor(ref corev1.ObjectReference) (float64, bool, error) {
+	return 1.0, true, nil
 }

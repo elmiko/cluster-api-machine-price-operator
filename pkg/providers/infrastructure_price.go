@@ -38,10 +38,10 @@ func NewInfrastructurePriceProvider(cl client.Client) InfrastructurePriceProvide
 	}
 }
 
-func (p InfrastructurePriceProvider) GetPriceFor(ref corev1.ObjectReference) (float64, error) {
+func (p InfrastructurePriceProvider) GetPriceFor(ref corev1.ObjectReference) (float64, bool, error) {
 	switch ref.Kind {
 	case kubemark.InfrastructureRefKind:
 		return kubemark.GetPriceFor(ref)
 	}
-	return 0.0, UnknownInfrastructureRefError{}
+	return 0.0, false, UnknownInfrastructureRefError{}
 }
